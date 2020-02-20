@@ -1,16 +1,18 @@
 # vim: set ft=dockerfile:
 
-FROM usgsastro/centos:latest
+FROM usgsastro/fedora:latest
 
 SHELL ["/bin/bash", "-lc"]
 
-RUN yum install -y          \
+RUN dnf makecache &&        \
+    dnf install -y          \
         gcc                 \
         gcc-c++             \
         git                 \
+        libnsl              \
         mesa-libGL-devel    \
     &&                      \
-    yum clean all
+    dnf clean all
 
 RUN curl -sLo /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &&    \
     chmod +x /tmp/miniconda.sh &&                                                                           \

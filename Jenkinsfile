@@ -9,7 +9,6 @@ def getCommitSha() {
     return sh(script: "git rev-parse HEAD", returnStdout: true).trim()
 }
 
-
 def setGitHubBuildStatus(status) {
     def repoUrl = getRepoUrl()
     def commitSha = getCommitSha()
@@ -30,187 +29,120 @@ def setGitHubBuildStatus(status) {
     ])
 }
 
-pipeline {
-  agent any
-  stages {
-    stage("CI") {
-      steps { 
-        script {
-          def groovy_utilities = load "${pwd()}/groovy_utilities.groovy"  
+def numCores = 8
+def errors = []
+def labels = ["Centos", "Fedora", "Mac", "Ubuntu"]
+def builders = [:]
 
-          def errors = []
-          def labels = ['CentOS', 'Fedora', 'Ubuntu', 'Mac'] // labels for Jenkins node types we will build on
-          def builders = [:] 
-          
-          println("Using Labels: " + labels)
+for (lbl in labels) {
+    def lblLower = lbl.toLowerCase()
+    def envFile = (lbl == 'CentOS') ? "environment_gcc4.yml" : "environment.yml"
 
-          for (x in labels) {
-            def label = x
-            def lower_label = label.toLowerCase()
-        
-            builders[lower_label] = {
-              node(lower_label) {
-              
-              def build_ok = true
-              def condaPath = ""
-              def isisEnv = [
-                "ISIS3DATA=/isisData/data",
-                "ISIS3TESTDATA=/isisData/testData",
-                "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
-                "MALLOC_CHECK_=1"
-              ]
+    def cmakeFlags = [
+        "-GNinja",
+        "-DJP2KFLAG=ON",
+        "-DKAKADU_INCLUDE_DIR=/isisData/kakadu",
+        "-Dpybindings=OFF",
+        "-DCMAKE_BUILD_TYPE=RELEASE"
+    ]
 
-              def cmakeFlags = [
-                  "-DJP2KFLAG=ON",
-                  "-DKAKADU_INCLUDE_DIR=/isisData/kakadu",
-                  "-Dpybindings=OFF",
-                  "-DCMAKE_BUILD_TYPE=RELEASE"
-              ]
+    def isisEnv = [
+        "ISIS3DATA=/isisData/data",
+        "ISIS3TESTDATA=/isisData/testData",
+        "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
+    ]
 
-              stage (label) {
-                  sh 'git config --global http.sslVerify false'
-                  checkout scm
-                  isisEnv.add("ISISROOT=${pwd()}/build")
-                  cmakeFlags.add("-DCMAKE_INSTALL_PREFIX=${pwd()}/install")
-                      
-                  env.STAGE_STATUS = "Creating conda environment"
-                  
-                  if (lower_label == "mac") {
-                    condaPath = "/tmp/macbuilds/" + sh(script: '{ date "+%m/%d/%y|%H:%M:%S:%m"; echo $WORKSPACE; } | md5 | tr -d "\n";', returnStdout: true) 
-                    
-                    sh """
-                      mkdir -p /tmp/macbuilds/
-                      curl -o miniconda.sh  https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-                      bash miniconda.sh -b -p ${condaPath}
-                      """
-                  } else {
-                    condaPath = "/home/jenkins/.conda/"
-                  } 
-           
-                  isisEnv.add("PATH=${pwd()}/install/bin:$condaPath/envs/isis/bin:$condaPath/bin:${env.PATH}")
+    builders[lblLower] = {
+        // Make sure node has a label named lblLower
+        node("${lblLower}-test") {
+            if (lblLower.equals("mac")) {
+                cleanWs()
 
-                  withEnv(isisEnv) {
-                    sh 'printenv'
-                    println("Anaconda Path: " + condaPath)
-                    
-                    sh """
-                        # Use the conda cache running on the Jenkins host
-                        conda config --set always_yes True
-                        conda config --set ssl_verify false
-                        conda create -c conda-forge --prefix ${condaPath}/envs/isis python=3
-                    """
-                    
-                    if (lower_label == "centos") {
-                        sh "conda env update -p ${condaPath}/envs/isis -f environment_gcc4.yml --prune"
-                    } else {
-                      sh """
-                        conda config --show channels
-                        conda env update -p ${condaPath}/envs/isis -f environment.yml --prune
-                      """
-                    }
-                    dir("${env.ISISROOT}") {
-                        try {
-                              env.STAGE_STATUS = "Building ISIS on ${label}"
-                              sh """
-                                  source activate ${condaPath}/envs/isis
-                                  echo `ls ../`
-                                  echo `pwd`
-                                  conda list
-                                  cmake -GNinja ${cmakeFlags.join(' ')} ../isis
-                                  ninja -j4 install
-                              """
-                        }
-                        catch(e) {
-                            build_ok = false
-                            errors.add(env.STAGE_STATUS)
-                            println e.toString()
-                        }
+            } else {
+                // Make sure pod template has a container named lblLower
+                container(lblLower) {
+                    // Checkout
+                    env.STAGE_STATUS = "Checkout on ${env.STAGE_NAME}"
+                    checkout scm
+                    sh 'mkdir build install'
+                    isisEnv.add("ISISROOT=${pwd()}/build")
+                    cmakeFlags.add("-DCMAKE_INSTALL_PREFIX=${pwd()}/install")
 
-                        if (build_ok) {
-                            try{
-                                dir("${env.ISISROOT}") {
-                                    env.STAGE_STATUS = "Running unit tests on ${label}"
-                                    sh """
-                                        source activate ${condaPath}/envs/isis
-                                        ctest -R _unit_ -j4 -VV
-                                    """
-                                }
-                            }
-                            catch(e) {
-                                build_ok = false
+                    // Environment
+                    env.STAGE_STATUS = "Environment on ${env.STAGE_NAME}"
+                    sh """#!/bin/bash -l
+                        conda create -n isis3 python=3.6 || true
+                        conda activate isis3
+                        conda config --env --add channels conda-forge
+                        conda config --env --add channels usgs-astrogeology
+                        conda env update -n isis3 -f ${envFile} --prune
+                        echo 'conda activate isis3' >> ~/.bashrc
+                    """ 
+
+                    withEnv(isisEnv) {
+                        dir(env.ISISROOT) {
+                            try {
+                                // Build
+                                env.STAGE_STATUS = "Build on ${env.STAGE_NAME}"
+                                sh """#!/bin/bash -l
+                                    cmake ${cmakeFlags.join(' ')} ../isis
+                                    ninja -j${numCores} install
+                                """        
+                            } catch(e) {
                                 errors.add(env.STAGE_STATUS)
-                                echo e.toString()
+                                error env.STAGE_STATUS
                             }
-                            sh 'source deactivate'
-
-                            try{
-                                env.STAGE_STATUS = "Running app tests on ${label}"
-                                sh """
-                                    source activate ${condaPath}/envs/isis
-                                    export PATH="${condaPath}bin/:$PATH"
-                                    echo $PATH
-                                    ctest -R _app_ -j4 -VV
+                           
+                            try { 
+                                // Unit tests
+                                env.STAGE_STATUS = "Unit tests on ${env.STAGE_NAME}"
+                                sh """#!/bin/bash -l
+                                    ctest -R _unit_ -j${numCores} -VV
                                 """
-                            }
-                            catch(e) {
-                                build_ok = false
+                            } catch(e) {
                                 errors.add(env.STAGE_STATUS)
-                                println e.toString()
                             }
-                            sh 'source deactivate'
 
-                            try{
-                                sh """
-                                    source activate ${condaPath}/envs/isis 
-                                    ctest -R _module_ -j4 -VV
+                            try { 
+                                // App tests
+                                env.STAGE_STATUS = "App tests on ${env.STAGE_NAME}"
+                                sh """#!/bin/bash -l
+                                    ctest -R _app_ -j${numCores} -VV
+                                    ctest -R _module_ -j${numCores} -VV
                                 """
-                            }
-                            catch(e) {
-                                build_ok = false
+                            } catch(e) {
                                 errors.add(env.STAGE_STATUS)
-                                println e.toString()
                             }
-                            sh 'source deactivate'
 
-                            try{
-                                env.STAGE_STATUS = "Running gtests on ${label}"
-                                sh """
-                                    source activate ${condaPath}/envs/isis
-                                    ctest -R "." -E "(_app_|_unit_|_module_)" -j4 -VV
+                            try {
+                                // Gtests
+                                env.STAGE_STATUS = "Gtests tests on ${env.STAGE_NAME}"
+                                sh """#!/bin/bash -l
+                                    ctest -R "." -E "(_app_|_unit_|_module_)" -j${numCores} -VV
                                 """
-                            }
-                            catch(e) {
-                                build_ok = false
+                            } catch(e) {
                                 errors.add(env.STAGE_STATUS)
-                                println e.toString()
                             }
-                            sh 'source deactivate'
                         }
-                      }
-                      
-                      if (lower_label == "mac") {
-                        sh "rm -rf ${condaPath}"
-                      }
-
-                      if(build_ok) {
-                          currentBuild.result = "SUCCESS"
-                      }
-                      else {
-                          currentBuild.result = "FAILURE"
-                          def comment = "Failed during:\n"
-                          errors.each {
-                              comment += "- ${it}\n"
-                          }
-                          setGitHubBuildStatus(comment)
-                      }
-                  }
+                    }        
                 }
-              }
             }
-          }
-          parallel builders
         }
-      }
     }
-  }
+}
+
+node {
+    parallel builders
+
+    // Populate result
+    def comment = "All checks passed"
+    if (errors.length > 0) {
+        currentBuild.result = "FAILURE"
+        comment = "Failed during:\n"
+        errors.each {
+            comment += "- ${it}\n"
+        }
+    }
+    println "${comment}"
+    setGitHubBuildStatus(comment)
 }

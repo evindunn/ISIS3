@@ -1,21 +1,33 @@
 #!/bin/bash -l
 set -e
 
+# Checkout
+export STAGE_STATUS="Checkout on $STAGE_NAME"
 conda create -n isis3 python=3.6
 conda activate isis3
 conda config --env --add channels conda-forge
 conda config --env --add channels usgs-astrogeology
 
-git clone --recurse-submodules https://github.com/USGS-Astrogeology/ISIS3.git
-cd ISIS3
-conda env update -n isis3 -f environment_gcc4.yml
+conda env update -n isis3 -f $ISIS_ENV_FILE
 
 mkdir build install
+export ISISROOT="$(pwd)/build"
 cd build
 
-cmake -Disis3Data=/isisData/data -Disis3TestData=/isisData/testData -DJP2KFLAG=OFF -DCMAKE_BUILD_TYPE=RELEASE -GNinja ../isis
+# Build
+export STAGE_STATUS="Build on $STAGE_NAME"
+cmake $(CMAKE_FLAGS) ../isis
+ninja -j8 install
 
-export ISISROOT=$(pwd)
+# Unit tests
+export STAGE_STATUS="Unit tests on $STAGE_NAME"
+ctest -R _unit_ -j8 -VV
 
-ninja -j4 install
+# App tests
+export STAGE_STATUS="App tests on $STAGE_NAME"
+ctest -R _app_ -j8 -VV
+
+# GTests
+export STAGE_STATUS="GTests on $STAGE_NAME"
+ctest -R "." -E "(_app_|_unit_|_module_)" -j8 -VV
 
