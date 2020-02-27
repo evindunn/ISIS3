@@ -57,6 +57,7 @@ def doBuild(label, isisEnv, cmakeFlags) {
                     ninja -j${numCores} install
                 """        
             } catch(e) {
+                println e
                 error "Error while building on ${label}"
             }
            
@@ -158,6 +159,7 @@ node {
     def comment = "All checks passed"
     if (errors.size() > 0) {
         currentBuild.result = "FAILURE"
+        comment = ""
         errors.each {
             comment += "${it}\n"
         }
