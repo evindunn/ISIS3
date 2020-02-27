@@ -17,8 +17,8 @@ pipeline {
             parallel {
                 stage("CentOS") {
                     agent { label "centos-test" }
-                    container("centos") {
-                        steps {
+                    steps {
+                        container("centos") {
                             // Checkout / environment
                             checkout scm
                             doEnviron("environment_gcc4.yml")
