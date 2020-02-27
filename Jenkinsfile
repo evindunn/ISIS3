@@ -19,17 +19,34 @@ pipeline {
                     agent { label "centos-test" }
 
                     steps {
+                        // Checkout / environment
                         checkout scm
-                        doEnviron("environment_gcc4.yml")         
+                        doEnviron("environment_gcc4.yml")
+                        sh "echo 'conda activate isis3' >> ~/.bashrc"
+
+                        // Build
+                        
                     }
                 }
 
                 stage("Fedora") {
                     agent { label "fedora-test" }
-
                     steps {
-                        checkout scm
-                        doEnviron("environment.yml")         
+                        sh 'echo Success!'
+                    }
+                }
+                
+                stage("Mac") {
+                    agent { label "mac-test" }
+                    steps {
+                        sh 'echo Success!'
+                    }
+                }
+                
+                stage("Ubuntu") {
+                    agent { label "ubuntu-test" }
+                    steps {
+                        sh 'echo Success!'
                     }
                 }
             }
