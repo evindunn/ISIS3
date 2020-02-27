@@ -10,12 +10,6 @@ def cmakeFlags = [
     "-DCMAKE_BUILD_TYPE=RELEASE"
 ]
 
-def isisEnv = [
-    "ISIS3DATA=/isisData/data",
-    "ISIS3TESTDATA=/isisData/testData",
-    "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
-]
-
 def doEnviron(envFile) {
     sh """#!/bin/bash -l
         conda create -n isis3 python=3.6 || true
@@ -42,34 +36,32 @@ pipeline {
             parallel {
                 stage('CentOS') {
                     agent { label 'centos-test' }
-                    steps {
-                        container("centos") {
-                            stages {
-                                stage("Checkout") {
-                                    steps {
-                                        // Checkout / environment
-                                        checkout scm
+                    container("centos") {
+                        stages {
+                            stage("Checkout") {
+                                steps {
+                                    // Checkout / environment
+                                    checkout scm
 
-                                        doEnviron("environment_gcc4.yml")
-                                        sh '''
-                                            echo 'conda activate isis3' >> ~/.bashrc
-                                            mkdir build install
-                                        '''
-                                    }
+                                    doEnviron("environment_gcc4.yml")
+                                    sh '''
+                                        echo 'conda activate isis3' >> ~/.bashrc
+                                        mkdir build install
+                                    '''
+                                }
+                            }
+
+                            stage("Build") {
+                                environment {
+                                    ISISROOT="${pwd}/build"
                                 }
 
-                                stage("Build") {
-                                    environment {
-                                        ISISROOT="${pwd}/build"
-                                    }
-
-                                    steps {
-                                        dir(env.ISISROOT) {
-                                            sh """#!/bin/bash -l
-                                                cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
-                                                ninja -j${numCores} install 
-                                            """
-                                        }
+                                steps {
+                                    dir(env.ISISROOT) {
+                                        sh """#!/bin/bash -l
+                                            cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
+                                            ninja -j${numCores} install 
+                                        """
                                     }
                                 }
                             }
