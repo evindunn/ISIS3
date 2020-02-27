@@ -135,8 +135,8 @@ for (lbl in labels) {
             if (lblLower.equals("mac")) {
                 cleanWs()
                 try {
-                    doBuild(lbl, isisEnv, cmakeFlags, numCores)
-                    doTests(lbl, isisEnv, numCores)
+                    doBuild(lbl)
+                    doTests(lbl)
                 } catch(e) {
                     errors.add(e)
                 }
@@ -145,8 +145,8 @@ for (lbl in labels) {
                 // Make sure pod template has a container named lblLower
                 container(lblLower) {
                     try {
-                        doBuild(lbl, isisEnv, cmakeFlags, numCores)
-                        doTests(lbl, isisEnv, numCores)
+                        doBuild(lbl)
+                        doTests(lbl)
                     } catch(e) {
                         errors.add(e)
                     }
