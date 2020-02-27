@@ -26,6 +26,10 @@ def doEnviron(envFile) {
     """ 
 }
 
+def doBuild(isisRoot) {
+    
+}
+
 pipeline {
     agent none
     environment {
@@ -40,24 +44,34 @@ pipeline {
                     agent { label 'centos-test' }
                     steps {
                         container("centos") {
-                            // Checkout / environment
-                            checkout scm
-                            doEnviron("environment_gcc4.yml")
-                            sh '''
-                                echo 'conda activate isis3' >> ~/.bashrc
-                                mkdir build install
-                            '''
+                            stages {
+                                stage("Checkout") {
+                                    steps {
+                                        // Checkout / environment
+                                        checkout scm
 
-                            // Build
-                            environment {
-                                ISISROOT = "${pwd()}/build"
-                            }
+                                        doEnviron("environment_gcc4.yml")
+                                        sh '''
+                                            echo 'conda activate isis3' >> ~/.bashrc
+                                            mkdir build install
+                                        '''
+                                    }
+                                }
 
-                            dir(env.ISISROOT) {
-                                sh """#!/bin/bash -l
-                                    cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
-                                    ninja -j${numCores} install 
-                                """
+                                stage("Build") {
+                                    environment {
+                                        ISISROOT="${pwd}/build"
+                                    }
+
+                                    steps {
+                                        dir(env.ISISROOT) {
+                                            sh """#!/bin/bash -l
+                                                cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
+                                                ninja -j${numCores} install 
+                                            """
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
