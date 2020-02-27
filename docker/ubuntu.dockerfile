@@ -18,7 +18,8 @@ RUN curl -sLo /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-l
     chmod +x /tmp/miniconda.sh &&                                                                           \
     /tmp/miniconda.sh -b -p /opt/conda &&                                                                   \
     rm /tmp/miniconda.sh &&                                                                                 \
-    sed -i '1i . /opt/conda/etc/profile.d/conda.sh' /etc/profile
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&                                      \
+    echo '. /opt/conda/etc/profile.d/conda.sh' >> /etc/bash.bashrc
 
 RUN git config --system http.sslCAPath /etc/ssl/certs/ca-certificates.crt &&        \ 
     echo 'ssl_verify: /etc/ssl/certs/ca-certificates.crt' > /opt/conda/.condarc &&  \
