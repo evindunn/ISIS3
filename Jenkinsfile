@@ -36,34 +36,23 @@ pipeline {
             parallel {
                 stage('CentOS') {
                     agent { label 'centos-test' }
-                    container("centos") {
-                        stages {
-                            stage("Checkout") {
-                                steps {
-                                    // Checkout / environment
-                                    checkout scm
+                    steps {
+                        container("centos") {
+                            // Checkout / environment
+                            checkout scm
 
-                                    doEnviron("environment_gcc4.yml")
-                                    sh '''
-                                        echo 'conda activate isis3' >> ~/.bashrc
-                                        mkdir build install
-                                    '''
-                                }
-                            }
+                            doEnviron("environment_gcc4.yml")
+                            sh '''
+                                echo 'conda activate isis3' >> ~/.bashrc
+                                mkdir build install
+                                export ISISROOT=${pwd()}/build
+                            '''
 
-                            stage("Build") {
-                                environment {
-                                    ISISROOT="${pwd}/build"
-                                }
-
-                                steps {
-                                    dir(env.ISISROOT) {
-                                        sh """#!/bin/bash -l
-                                            cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
-                                            ninja -j${numCores} install 
-                                        """
-                                    }
-                                }
+                            dir(env.ISISROOT) {
+                                sh """#!/bin/bash -l
+                                    cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
+                                    ninja -j${numCores} install 
+                                """
                             }
                         }
                     }
