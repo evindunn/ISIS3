@@ -1,5 +1,21 @@
 // vim: set ft=groovy:
 
+def numCores = 8
+
+def cmakeFlags = [
+    "-GNinja",
+    "-DJP2KFLAG=ON",
+    "-DKAKADU_INCLUDE_DIR=/isisData/kakadu",
+    "-Dpybindings=OFF",
+    "-DCMAKE_BUILD_TYPE=RELEASE"
+]
+
+def isisEnv = [
+    "ISIS3DATA=/isisData/data",
+    "ISIS3TESTDATA=/isisData/testData",
+    "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
+]
+
 def doEnviron(envFile) {
     sh """#!/bin/bash -l
         conda create -n isis3 python=3.6 || true
@@ -12,20 +28,37 @@ def doEnviron(envFile) {
 
 pipeline {
     agent none
+    environment {
+        ISIS3DATA = '/isisData/data'
+        ISIS3TESTDATA = '/isisData/testData'
+        ISIS3MGRSCRIPTS = '/isisData/data/isis3mgr_scripts'
+    }
     stages {
-        stage("Dispatch Jobs") {
+        stage('Dispatch Jobs') {
             parallel {
-                stage("CentOS") {
-                    agent { label "centos-test" }
+                stage('CentOS') {
+                    agent { label 'centos-test' }
                     steps {
                         container("centos") {
                             // Checkout / environment
                             checkout scm
                             doEnviron("environment_gcc4.yml")
-                            sh "echo 'conda activate isis3' >> ~/.bashrc"
+                            sh '''
+                                echo 'conda activate isis3' >> ~/.bashrc
+                                mkdir build install
+                            '''
 
                             // Build
-                            
+                            environment {
+                                ISISROOT = "${pwd()}/build"
+                            }
+
+                            dir(env.ISISROOT) {
+                                sh """#!/bin/bash -l
+                                    cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
+                                    ninja -j${numCores} install 
+                                """
+                            }
                         }
                     }
                 }
