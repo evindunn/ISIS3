@@ -17,15 +17,16 @@ pipeline {
             parallel {
                 stage("CentOS") {
                     agent { label "centos-test" }
+                    container("centos") {
+                        steps {
+                            // Checkout / environment
+                            checkout scm
+                            doEnviron("environment_gcc4.yml")
+                            sh "echo 'conda activate isis3' >> ~/.bashrc"
 
-                    steps {
-                        // Checkout / environment
-                        checkout scm
-                        doEnviron("environment_gcc4.yml")
-                        sh "echo 'conda activate isis3' >> ~/.bashrc"
-
-                        // Build
-                        
+                            // Build
+                            
+                        }
                     }
                 }
 
