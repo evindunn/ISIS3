@@ -11,23 +11,28 @@ def doEnviron(envFile) {
 }
 
 pipeline {
-    parallel {
-        stage("CentOS") {
-            agent "centos"
+    agent none
+    stages {
+        stage("Dispatch Jobs") {
+            parallel {
+                stage("CentOS") {
+                    agent "centos"
 
-            steps {
-                checkout scm
-                doEnviron("environment_gcc4.yml")         
+                    steps {
+                        checkout scm
+                        doEnviron("environment_gcc4.yml")         
+                    }
+                }
+
+                stage("Fedora") {
+                    agent "fedora"
+
+                    steps {
+                        checkout scm
+                        doEnviron("environment.yml")         
+                    }
+                }
             }
         }
-
-        stage("Fedora") {
-            agent "fedora"
-
-            steps {
-                checkout scm
-                doEnviron("environment.yml")         
-            }
-        }
-    } 
+    }
 }
