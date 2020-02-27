@@ -51,8 +51,9 @@ def doBuild(label, isisEnv, cmakeFlags) {
         dir(env.ISISROOT) {
             try {
                 // Build
+                def flags = cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]
                 sh """#!/bin/bash -l
-                    cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
+                    cmake ${flags.join(' ')} ../isis
                     ninja -j${numCores} install
                 """        
             } catch(e) {
@@ -162,5 +163,5 @@ node {
         }
     }
     println "${comment}"
-    setGitHubBuildStatus(comment)
+    #setGitHubBuildStatus(comment)
 }
