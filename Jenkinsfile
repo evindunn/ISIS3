@@ -1,5 +1,21 @@
 // vim: ft=groovy
 
+def numCores = 8
+
+def cmakeFlags = [
+    "-GNinja",
+    "-DJP2KFLAG=ON",
+    "-DKAKADU_INCLUDE_DIR=/isisData/kakadu",
+    "-Dpybindings=OFF",
+    "-DCMAKE_BUILD_TYPE=RELEASE"
+]
+
+def isisEnv = [
+    "ISIS3DATA=/isisData/data",
+    "ISIS3TESTDATA=/isisData/testData",
+    "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
+]
+
 // Helpers for setting commit status
 def getRepoUrl() {
     return sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
@@ -29,7 +45,7 @@ def setGitHubBuildStatus(status) {
     ])
 }
 
-def doBuild(label, isisEnv, cmakeFlags, numCores) {
+def doBuild(label) {
     def envFile = (label == 'CentOS') ? "environment_gcc4.yml" : "environment.yml"
 
     // Checkout
@@ -43,17 +59,21 @@ def doBuild(label, isisEnv, cmakeFlags, numCores) {
         conda config --env --add channels conda-forge
         conda config --env --add channels usgs-astrogeology
         conda env update -n isis3 -f ${envFile} --prune
-        echo 'conda activate isis3' >> ~/.bashrc
-        echo 'conda activate isis3' >> ~/.bash_profile
     """ 
+
+    if (label != "Mac") {
+        sh '''
+            echo 'conda activate isis3' >> ~/.bashrc
+            echo 'conda activate isis3' >> ~/.bash_profile
+        '''
+    }
 
     withEnv(isisEnv + ["ISISROOT=${pwd()}/build"]) {
         dir(env.ISISROOT) {
             try {
                 // Build
-                def flags = cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]
                 sh """#!/bin/bash -l
-                    cmake ${flags.join(' ')} ../isis
+                    cmake ${(cmakeFlags + ["-DCMAKE_INSTALL_PREFIX=${pwd()}/install"]).join(' ')} ../isis
                     ninja -j${numCores} install
                 """        
             } catch(e) {
@@ -64,7 +84,7 @@ def doBuild(label, isisEnv, cmakeFlags, numCores) {
     }        
 }
 
-def doTests(label, isisEnv) {
+def doTests(label) {
     def errors = []
 
     withEnv(isisEnv + ["ISISROOT=${pwd()}/build"]) {
@@ -102,21 +122,6 @@ def doTests(label, isisEnv) {
     error errors.join('\n')
 }
 
-def cmakeFlags = [
-    "-GNinja",
-    "-DJP2KFLAG=ON",
-    "-DKAKADU_INCLUDE_DIR=/isisData/kakadu",
-    "-Dpybindings=OFF",
-    "-DCMAKE_BUILD_TYPE=RELEASE"
-]
-
-def isisEnv = [
-    "ISIS3DATA=/isisData/data",
-    "ISIS3TESTDATA=/isisData/testData",
-    "ISIS3MGRSCRIPTS=/isisData/data/isis3mgr_scripts",
-]
-
-def numCores = 8
 def errors = []
 def labels = ["Centos", "Fedora", "Mac", "Ubuntu"]
 def builders = [:]
@@ -131,7 +136,7 @@ for (lbl in labels) {
                 cleanWs()
                 try {
                     doBuild(lbl, isisEnv, cmakeFlags, numCores)
-                    doTests(lbl, isisEnv)
+                    doTests(lbl, isisEnv, numCores)
                 } catch(e) {
                     errors.add(e)
                 }
@@ -141,7 +146,7 @@ for (lbl in labels) {
                 container(lblLower) {
                     try {
                         doBuild(lbl, isisEnv, cmakeFlags, numCores)
-                        doTests(lbl, isisEnv)
+                        doTests(lbl, isisEnv, numCores)
                     } catch(e) {
                         errors.add(e)
                     }
