@@ -29,7 +29,7 @@ def setGitHubBuildStatus(status) {
     ])
 }
 
-def doBuild(label, isisEnv, cmakeFlags) {
+def doBuild(label, isisEnv, cmakeFlags, numCores) {
     def envFile = (label == 'CentOS') ? "environment_gcc4.yml" : "environment.yml"
 
     // Checkout
@@ -57,7 +57,6 @@ def doBuild(label, isisEnv, cmakeFlags) {
                     ninja -j${numCores} install
                 """        
             } catch(e) {
-                println e
                 error "Error while building on ${label}"
             }
            
@@ -131,7 +130,7 @@ for (lbl in labels) {
             if (lblLower.equals("mac")) {
                 cleanWs()
                 try {
-                    doBuild(lbl, isisEnv, cmakeFlags)
+                    doBuild(lbl, isisEnv, cmakeFlags, numCores)
                     doTests(lbl, isisEnv)
                 } catch(e) {
                     errors.add(e)
@@ -141,7 +140,7 @@ for (lbl in labels) {
                 // Make sure pod template has a container named lblLower
                 container(lblLower) {
                     try {
-                        doBuild(lbl, isisEnv, cmakeFlags)
+                        doBuild(lbl, isisEnv, cmakeFlags, numCores)
                         doTests(lbl, isisEnv)
                     } catch(e) {
                         errors.add(e)
