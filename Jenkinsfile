@@ -16,7 +16,7 @@ pipeline {
         stage("Dispatch Jobs") {
             parallel {
                 stage("CentOS") {
-                    agent { label "centos" }
+                    agent { label "centos-test" }
 
                     steps {
                         checkout scm
@@ -25,7 +25,7 @@ pipeline {
                 }
 
                 stage("Fedora") {
-                    agent { label "fedora" }
+                    agent { label "fedora-test" }
 
                     steps {
                         checkout scm
