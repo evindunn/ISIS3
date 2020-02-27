@@ -30,6 +30,8 @@ def setGitHubBuildStatus(status) {
 }
 
 def doBuild(label, isisEnv, cmakeFlags) {
+    def envFile = (label == 'CentOS') ? "environment_gcc4.yml" : "environment.yml"
+
     // Checkout
     checkout scm
     sh 'mkdir build install'
@@ -120,21 +122,28 @@ def builders = [:]
 
 for (lbl in labels) {
     def lblLower = lbl.toLowerCase()
-    def envFile = (lbl == 'CentOS') ? "environment_gcc4.yml" : "environment.yml"
 
     builders[lblLower] = {
         // Make sure node has a label named lblLower
         node("${lblLower}-test") {
             if (lblLower.equals("mac")) {
                 cleanWs()
-                doBuild(lbl, isisEnv, cmakeFlags)
-                doTests(lbl, isisEnv)
+                try {
+                    doBuild(lbl, isisEnv, cmakeFlags)
+                    doTests(lbl, isisEnv)
+                } catch(e) {
+                    errors.add(e)
+                }
 
             } else {
                 // Make sure pod template has a container named lblLower
                 container(lblLower) {
-                    doBuild(lbl, isisEnv, cmakeFlags)
-                    doTests(lbl, isisEnv)
+                    try {
+                        doBuild(lbl, isisEnv, cmakeFlags)
+                        doTests(lbl, isisEnv)
+                    } catch(e) {
+                        errors.add(e)
+                    }
                 }
             }
         }
@@ -148,9 +157,8 @@ node {
     def comment = "All checks passed"
     if (errors.length > 0) {
         currentBuild.result = "FAILURE"
-        comment = "Failed during:\n"
         errors.each {
-            comment += "- ${it}\n"
+            comment += "${it}\n"
         }
     }
     println "${comment}"
