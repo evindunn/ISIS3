@@ -155,7 +155,7 @@ node {
 
     // Populate result
     def comment = "All checks passed"
-    if (errors.length > 0) {
+    if (errors.size() > 0) {
         currentBuild.result = "FAILURE"
         errors.each {
             comment += "${it}\n"
