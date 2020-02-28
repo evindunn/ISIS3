@@ -6,8 +6,9 @@ def nodes = [:]
 node {
     stage("Allocate Nodes") {
         for (lbl in labels) {
-            nodes[lbl] = {
-                println lbl
+            def label = lbl
+            nodes[label] = {
+                println label
             //     stage(lbl) {
             //         isisNode(lbl) {
             //             loginShell 'conda --version'
