@@ -3,14 +3,18 @@
 def labels = ["CentOS"]
 def nodes = [:]
 
-for (label in labels) {
-    nodes[label] = {
-        node(label) {
-            stage(label) {
-                loginShell 'conda --version'
+node {
+    stage("Allocate Nodes") {
+        for (label in labels) {
+            nodes[label] = {
+                isisNode(label) {
+                    stage(label) {
+                        loginShell 'conda --version'
+                    }
+                }
             }
         }
+
+        parallel nodes
     }
 }
-
-parallel nodes
