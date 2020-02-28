@@ -9,7 +9,12 @@ for (lbl in labels) {
          stage(label) {
             isisNode(label) {
                 condaEnv("isis3") {
-                    printenv
+                    sh 'env'
+                }
+
+                condaEnv("isis3") {
+                    checkout scm
+                    loginShell "conda env update -f environment.yml"
                 }
             }
          }
