@@ -5,10 +5,10 @@ def nodes = [:]
 
 node {
     stage("Allocate Nodes") {
-        for (label in labels) {
-            nodes[label] = {
-                isisNode(label) {
-                    stage(label) {
+        for (lbl in labels) {
+            nodes[lbl] = {
+                isisNode(lbl) {
+                    stage(lbl) {
                         loginShell 'conda --version'
                     }
                 }
