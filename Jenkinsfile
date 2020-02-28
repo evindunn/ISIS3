@@ -7,7 +7,7 @@ pipeline {
             steps { 
                 container("centos") {
                     script {
-                        loginshell 
+                        loginshell "conda --version"
                     }
                 }
             }
