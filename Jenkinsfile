@@ -8,12 +8,14 @@ node {
         for (lbl in labels) {
             def label = lbl
             nodes[label] = {
-                println label
-            //     stage(lbl) {
-            //         isisNode(lbl) {
-            //             loginShell 'conda --version'
-            //         }
-            //     }
+                 stage(label) {
+                    node(label) {
+                        println label
+                    }
+                     # isisNode(lbl) {
+                     #     loginShell 'conda --version'
+                     # }
+                 }
             }
         }
 
