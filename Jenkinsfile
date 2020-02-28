@@ -8,6 +8,7 @@ node {
         for (lbl in labels) {
             nodes[lbl] = {
                 stage(lbl) {
+                    println lbl
                     isisNode(lbl) {
                         loginShell 'conda --version'
                     }
