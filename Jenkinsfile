@@ -12,9 +12,9 @@ node {
                     node(label) {
                         println label
                     }
-                     # isisNode(lbl) {
-                     #     loginShell 'conda --version'
-                     # }
+                    // isisNode(lbl) {
+                    //     loginShell 'conda --version'
+                    // }
                  }
             }
         }
