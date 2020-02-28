@@ -8,7 +8,9 @@ for (lbl in labels) {
     nodes[label] = {
          stage(label) {
             isisNode(label) {
-                loginShell 'conda --version'
+                condaEnv("isis3") {
+                    printenv
+                }
             }
          }
     }
