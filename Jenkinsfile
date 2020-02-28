@@ -1,7 +1,13 @@
 // vim: ft=groovy
 
-kubernetes("centos") {
-    stage("Testing") {
-        loginShell "conda --version"
+
+def labels = ["CentOS", "Mac"]
+def nodes = [:]
+
+for (label in labels) {
+    nodes[label] = isisNode(label) {
+        loginShell 'conda --version'
     }
 }
+
+parallel nodes
