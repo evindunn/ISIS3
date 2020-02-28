@@ -5,9 +5,13 @@ def labels = ["CentOS", "Mac"]
 def nodes = [:]
 
 for (label in labels) {
-    nodes[label] = isisNode(label) {
-        loginShell 'conda --version'
+    nodes[label] = {
+        isisNode(label) {
+            loginShell 'conda --version'
+        }
     }
 }
 
-parallel nodes
+node {
+    parallel nodes
+}
