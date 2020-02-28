@@ -1,7 +1,7 @@
 // vim: ft=groovy
 
-kubernetes("centos", {
+kubernetes("centos") {
     stage("Testing") {
         loginShell "conda --version"
     }
-})
+}
