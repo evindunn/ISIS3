@@ -7,8 +7,8 @@ node {
     stage("Allocate Nodes") {
         for (lbl in labels) {
             nodes[lbl] = {
-                isisNode(lbl) {
-                    stage(lbl) {
+                stage(lbl) {
+                    isisNode(lbl) {
                         loginShell 'conda --version'
                     }
                 }
