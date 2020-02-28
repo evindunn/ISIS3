@@ -6,8 +6,8 @@ def nodes = [:]
 
 for (label in labels) {
     nodes[label] = {
-        stage(label) {
-            isisNode(label) {
+        isisNode(label) {
+            stage(label) {
                 loginShell 'conda --version'
             }
         }
