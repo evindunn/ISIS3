@@ -1,6 +1,7 @@
 // vim: ft=groovy
 
-def labels = ["CentOS", "Fedora", "Mac", "Ubuntu"]
+// def labels = ["CentOS", "Fedora", "Mac", "Ubuntu"]
+def labels = ["CentOS"]
 def nodes = [:]
 
 for (lbl in labels) {
