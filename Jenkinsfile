@@ -12,6 +12,4 @@ for (label in labels) {
     }
 }
 
-node {
-    parallel nodes
-}
+parallel nodes
