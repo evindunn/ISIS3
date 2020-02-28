@@ -1,7 +1,7 @@
 // vim: ft=groovy
 
 pipeline {
-    agent { label = "centos-test" }
+    agent { label "centos-test" }
     stages {
         stage("Testing") {
             steps { 
