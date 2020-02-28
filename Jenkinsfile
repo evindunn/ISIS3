@@ -7,15 +7,15 @@ node {
     stage("Allocate Nodes") {
         for (lbl in labels) {
             println lbl
-            # nodes[lbl] = {
-            #     stage(lbl) {
-            #         isisNode(lbl) {
-            #             loginShell 'conda --version'
-            #         }
-            #     }
-            # }
+            // nodes[lbl] = {
+            //     stage(lbl) {
+            //         isisNode(lbl) {
+            //             loginShell 'conda --version'
+            //         }
+            //     }
+            // }
         }
 
-        #parallel nodes
+        //parallel nodes
     }
 }
