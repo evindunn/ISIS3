@@ -6,16 +6,16 @@ def nodes = [:]
 node {
     stage("Allocate Nodes") {
         for (lbl in labels) {
-            println lbl
-            // nodes[lbl] = {
+            nodes[lbl] = {
+                println lbl
             //     stage(lbl) {
             //         isisNode(lbl) {
             //             loginShell 'conda --version'
             //         }
             //     }
-            // }
+            }
         }
 
-        //parallel nodes
+        parallel nodes
     }
 }
