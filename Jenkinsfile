@@ -7,7 +7,7 @@ for (lbl in labels) {
     def label = lbl
     nodes[label] = {
          stage(label) {
-            isisNode(lbl) {
+            isisNode(label) {
                 loginShell 'conda --version'
             }
          }
