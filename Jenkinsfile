@@ -12,7 +12,9 @@ for (lbl in labels) {
 
             isisNode(label) {
                 try {
-                    error "ERROR!"
+                    if (label != "Ubuntu") {
+                        error "ERROR!"
+                    }
 
                 } catch(e) {
                     errors.add("Failed on ${label}")           
