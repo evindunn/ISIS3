@@ -30,7 +30,7 @@ for (lbl in labels) {
 }
 
 node {
-    checkout scm
+    println env
 
     try {
         parallel nodes
