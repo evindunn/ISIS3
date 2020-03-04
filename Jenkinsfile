@@ -20,7 +20,7 @@ for (lbl in labels) {
                 }
 
                 if (nodeFailed) {
-                    currentBuild.result = 'FAILURE';
+                    error "Failed on ${label}"
                 }
             }
          }
@@ -28,16 +28,17 @@ for (lbl in labels) {
 }
 
 node {
-    parallel nodes
+    try {
+        parallel nodes
 
-    if (errors.size() > 0) {
+    } catch(e) {
         currentBuild.result = 'FAILURE';
 
         def comment = "Failed during:\n"
         errors.each {
             comment += "- ${it}\n"
         }
-
+        
         println comment
         setGithubStatus(comment)
     }
