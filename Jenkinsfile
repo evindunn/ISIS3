@@ -30,7 +30,7 @@ for (lbl in labels) {
 }
 
 node {
-    printenv
+    loginShell 'echo $(env)'
 
     try {
         parallel nodes
