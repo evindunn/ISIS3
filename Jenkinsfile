@@ -30,6 +30,8 @@ for (lbl in labels) {
 }
 
 node {
+    checkout scm
+
     try {
         parallel nodes
 
