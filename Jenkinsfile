@@ -20,7 +20,7 @@ for (lbl in labels) {
                 }
 
                 if (nodeFailed) {
-                    error "Failed on ${label}"
+                    currentBuild.result = 'FAILURE';
                 }
             }
          }
