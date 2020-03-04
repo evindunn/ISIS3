@@ -30,7 +30,7 @@ for (lbl in labels) {
 }
 
 node {
-    println "${env}"
+    printenv
 
     try {
         parallel nodes
