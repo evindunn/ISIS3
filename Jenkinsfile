@@ -1,5 +1,7 @@
 // vim: ft=groovy
 
+// Comment
+
 def labels = ["CentOS", "Fedora", "Mac", "Ubuntu"]
 def nodes = [:]
 def errors = []
