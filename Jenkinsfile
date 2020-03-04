@@ -2,7 +2,8 @@
 
 // Comment
 
-def labels = ["CentOS", "Fedora", "Mac", "Ubuntu"]
+// def labels = ["CentOS", "Fedora", "Mac", "Ubuntu"]
+def labels = ["Mac"]
 def nodes = [:]
 def errors = []
 
