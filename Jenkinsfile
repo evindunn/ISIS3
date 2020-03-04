@@ -38,6 +38,7 @@ node {
             comment += "- ${it}\n"
         }
 
+        println comment
         setGithubStatus(comment)
     }
 }
