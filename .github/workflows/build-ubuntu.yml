@@ -7,7 +7,6 @@ jobs:
       ISISDATA: /isisData/isis_data
       ISISTESTDATA: /isisData/isis_testData
       ISISROOT: "${{ github.workspace }}/build"
-      PATH: "${{ github.workspace }}/install/bin:${{ env.PATH }}"
       MALLOC_CHECK_: "1"
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +17,8 @@ jobs:
       - run: conda install -c conda-forge python=3 findutils
       - run: conda env update -f ${envFile}
       - run: mkdir build install
-      - working-directory: ${{ env.ISISROOT  }}
+      - run: echo "${{ github.workspace }}/install/bin" >> $GITHUB_PATH
+      - working-directory: "${{ env.ISISROOT }}"
         run: |
           cmake \
             -GNinja \
