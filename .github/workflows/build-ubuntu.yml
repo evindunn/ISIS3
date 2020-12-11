@@ -1,0 +1,30 @@
+name: Build on Ubuntu
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    env:
+      ISISDATA: /isisData/isis_data
+      ISISTESTDATA: /isisData/isis_testData
+      ISISROOT: "${{ github.workspace }}/build"
+      PATH: "${{ github.workspace }}/install/bin:${{ env.PATH }}"
+      MALLOC_CHECK_: "1"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2.0.1
+        with:
+          channels: usgs-astrogeology,conda-forge,defaults
+
+      - run: conda install -c conda-forge python=3 findutils
+      - run: conda env update -f ${envFile}
+      - run: mkdir build install
+      - working-directory: ${{ env.ISISROOT  }}
+        run: |
+          cmake \
+            -GNinja \
+            -DJP2KFLAG=ON \
+            -DKAKADU_INCLUDE_DIR=/isisData/kakadu \
+            -Dpybindings=OFF
+            -DCMAKE_BUILD_TYPE=RELEASE
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
+            ../isis

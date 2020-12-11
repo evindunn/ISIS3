@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  isis:
+    image: usgsastro/isis
+    volumes:
+      - /my/data/dir:/opt/conda/data
+      - /my/testData/dir:/opt/conda/testData
+
