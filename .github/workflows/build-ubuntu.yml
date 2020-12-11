@@ -13,6 +13,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2.0.1
         with:
           channels: usgs-astrogeology,conda-forge,defaults
+          activate-environment: isis3
 
       - run: conda install -c conda-forge python=3 findutils
       - run: conda env update -f environment.yml
