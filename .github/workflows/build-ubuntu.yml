@@ -4,7 +4,7 @@
 name: Build on Ubuntu
 on: [push]
 jobs:
-  "Build on Ubuntu":
+  build:
     runs-on: ubuntu-18.04
     env:
       ISISDATA: /isisData/isis_data
