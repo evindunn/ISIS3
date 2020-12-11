@@ -1,3 +1,6 @@
+# To run a command in the conda env you have to use 'shell: bash -l {0}'
+# See https://github.com/marketplace/actions/setup-miniconda#important
+
 name: Build on Ubuntu
 on: [push]
 jobs:
@@ -10,6 +13,9 @@ jobs:
       MALLOC_CHECK_: "1"
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: "true"
+
       - uses: conda-incubator/setup-miniconda@v2.0.1
         with:
           auto-update-conda: true
