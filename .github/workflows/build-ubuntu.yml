@@ -34,3 +34,7 @@ jobs:
             ../isis
         shell: bash -l {0}
         working-directory: "${{ env.ISISROOT }}"
+
+      - run: ninja -j$(grep processor /proc/cpuinfo | wc -l) install
+        shell: bash -l {0}
+        working-directory: "${{ env.ISISROOT }}"
