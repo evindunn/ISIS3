@@ -25,7 +25,7 @@ jobs:
             -GNinja \
             -DJP2KFLAG=ON \
             -DKAKADU_INCLUDE_DIR=/isisData/kakadu \
-            -Dpybindings=OFF
-            -DCMAKE_BUILD_TYPE=RELEASE
+            -Dpybindings=OFF \
+            -DCMAKE_BUILD_TYPE=RELEASE \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
             ../isis
