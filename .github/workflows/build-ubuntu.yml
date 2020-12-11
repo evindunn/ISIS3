@@ -14,7 +14,7 @@ jobs:
         with:
           channels: usgs-astrogeology,conda-forge,defaults
           activate-environment: isis3
-      - run: "apt-get update && apt-get install build-essential ninja -y"
+      - run: "sudo sh -c 'apt-get update && apt-get install build-essential ninja -y'"
       - run: conda install -c conda-forge python=3 findutils
       - run: conda env update -n isis3 -f environment.yml
       - run: mkdir build install
