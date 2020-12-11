@@ -4,7 +4,7 @@
 name: Build on Ubuntu
 on: [push]
 jobs:
-  build:
+  "Build on Ubuntu":
     runs-on: ubuntu-18.04
     env:
       ISISDATA: /isisData/isis_data
@@ -32,7 +32,7 @@ jobs:
       - run: |
           cmake \
             -GNinja \
-            -DJP2KFLAG=ON \
+            -DJP2KFLAG=OFF \
             -DKAKADU_INCLUDE_DIR=/isisData/kakadu \
             -Dpybindings=OFF \
             -DCMAKE_BUILD_TYPE=RELEASE \
