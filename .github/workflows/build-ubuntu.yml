@@ -15,7 +15,7 @@ jobs:
           channels: usgs-astrogeology,conda-forge,defaults
 
       - run: conda install -c conda-forge python=3 findutils
-      - run: conda env update -f ${envFile}
+      - run: conda env update -f environment.yml
       - run: mkdir build install
       - run: echo "${{ github.workspace }}/install/bin" >> $GITHUB_PATH
       - working-directory: "${{ env.ISISROOT }}"
